@@ -12,11 +12,13 @@ describe("Unit tests", function () {
 
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.admin = signers[0];
+    this.signers.user1 = signers[1];
+    this.signers.user2 = signers[2];
 
     this.loadFixture = loadFixture;
   });
 
-  describe("CrowdFunding", function () {
+  describe("Crowd Fundting", function () {
     beforeEach(async function () {
       const { crowdfunding } = await this.loadFixture(deployCrowdFundingFixture);
       this.crowdfunding = crowdfunding;

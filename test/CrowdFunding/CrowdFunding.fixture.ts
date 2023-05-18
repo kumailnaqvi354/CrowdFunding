@@ -12,7 +12,9 @@ export async function deployCrowdFundingFixture(): Promise<{ crowdfunding: Crowd
   const crowdfundingFactory: CrowdFunding__factory = <CrowdFunding__factory>(
     await ethers.getContractFactory("CrowdFunding")
   );
-  const crowdfunding: CrowdFunding = <CrowdFunding>await crowdfundingFactory.connect(admin).deploy(greeting); //remove and add argument token address
+  const crowdfunding: CrowdFunding = <CrowdFunding>(
+    await crowdfundingFactory.connect(admin).deploy("0x0C45a9c64283F515E2B3BB84a2bbfbE9C4E89212")
+  ); //remove and add argument token address
   await crowdfunding.deployed();
 
   return { crowdfunding };

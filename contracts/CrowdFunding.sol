@@ -11,7 +11,7 @@ import "./interfaces/ICrowdfunding.sol";
 contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
     
     address public immutable CROWDFUNDINGTOKEN;
-    uint256 PROJECTID;
+    uint256 public PROJECTID;
 
     mapping (uint256 => address[]) public projectFundsProvider;
     mapping (uint256 => ICrowdFunding.ProjectDetails) public projectDetails;

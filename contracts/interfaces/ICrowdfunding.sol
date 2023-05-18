@@ -16,8 +16,6 @@ interface ICrowdFunding {
         uint256 deadline;
     }
     
-   
-
     event ProjectAddedToFundRaise(uint256 _projectId,string _name,string _description, uint256 _amountToRaised, uint256 _deadline);
     event FundsRaised(uint256 _projecId, uint256 _amount, address _sender);
     event WithdrawFunds(uint256 _projecId, uint256 _amount, address _withdrawer);
