@@ -9,7 +9,8 @@ interface ICrowdFunding {
     error NoFundsInProjects();
     error InvalidAmount();
     error InvalidProject();
-
+    error DeadlineNotEnded();
+    error NotFundedBySender();
     struct Project {
         string name;
         string projectDescription;
@@ -24,8 +25,7 @@ interface ICrowdFunding {
 
     function addProjectForFundRaising(string memory _name,string memory _description, uint256 _amountToRaise, uint256 _deadline) external;
     function addFundToProject(uint256 _projecId, uint256 _amount) external;
-    function getProjectDetails(uint256 _projectId)external view;
-    function withdrawFundsFromProject(uint256 _projectID)external;
+    function withdrawFundsFromProject(uint256 _projectId)external;
 
 
 }

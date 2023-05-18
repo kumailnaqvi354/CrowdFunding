@@ -39,37 +39,49 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
        emit ICrowdFunding.ProjectAddedToFundRaise(PROJECTID, _name,_description, _amountToRaise, _deadline);
     }
 
-    function addFundToProject(uint256 _projecId, uint256 _amount) external {
-        ICrowdFunding.Project memory cache = projectDetails[_projecId];
-        uint256 userProvidedfunds =  projectFundsProvider[_projecId][msg.sender];
-        if(_amount < 0){
-            revert InvalidAmount();
+    function addFundToProject(uint256 _projectId, uint256 _amount) external {
+        ICrowdFunding.Project memory cache = projectDetails[_projectId];
+        uint256 userProvidedfunds =  projectFundsProvider[_projectId][msg.sender];
+        if (cache.amountToRaise < 0 || _projectId <= 0) {
+            revert InvalidProject();
         }
-        if (cache.amountToRaise < 0) {
-                revert InvalidProject();
+        if(cache.deadline < block.timestamp){
+            revert DeadlineEnded();
         }
-        if (cache.amountRaised > cache.amountToRaise) {
+        if (cache.amountRaised >= cache.amountToRaise) {
             revert FundRaiseCompleted();
+        }
+        if(_amount < 0 || _amount + cache.amountRaised > cache.amountToRaise){
+            revert InvalidAmount();
         }
         cache.amountRaised += _amount;
         userProvidedfunds += _amount;
-        projectDetails[_projecId] = cache;
+        projectDetails[_projectId] = cache;
         IERC20(CROWDFUNDINGTOKEN).transferFrom(msg.sender, address(this), _amount);
-        emit ICrowdFunding.FundsRaised(_projecId, _amount, msg.sender);
+        emit ICrowdFunding.FundsRaised(_projectId, _amount, msg.sender);
     }
     
-    function getProjectDetails(uint256 _projectId)public view{
-    // check project ID
-    // check is available details 
-    }
-    
-    function withdrawFundsFromProject(uint256 _projectID)external nonReentrant{
-        // check is project deadline past
-        // check is fund raised completed to required amount
-        // check is user a fund provider 
-        // get amount given as funds
-        // update struct and mapping 
-        // transfer amount to user
+    function withdrawFundsFromProject(uint256 _projectId)external nonReentrant{
+        ICrowdFunding.Project memory cache = projectDetails[_projectId];
+        uint256 userProvidedfunds =  projectFundsProvider[_projectId][msg.sender];
+       if (cache.amountToRaise < 0 || _projectId <= 0) {
+            revert InvalidProject();
+        }
+        if(cache.deadline < block.timestamp){
+            revert DeadlineNotEnded();
+        }
+        if (cache.amountRaised < cache.amountToRaise) {
+            revert FundRaiseCompleted();
+        }
+        if (userProvidedfunds < 0) {
+            revert NotFundedBySender();
+        }
+         
+        cache.amountRaised -= userProvidedfunds;
+        projectDetails[_projectId] = cache;
+        delete projectFundsProvider[_projectId][msg.sender];
+        IERC20(CROWDFUNDINGTOKEN).transfer(msg.sender, userProvidedfunds);
+        emit ICrowdFunding.WithdrawFunds(_projectId, userProvidedfunds, msg.sender);
 
     }
 
