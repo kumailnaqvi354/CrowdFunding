@@ -13,8 +13,8 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
     address public immutable CROWDFUNDINGTOKEN;
     uint256 public PROJECTID;
 
-    mapping (uint256 => address[]) public projectFundsProvider;
-    mapping (uint256 => ICrowdFunding.ProjectDetails) public projectDetails;
+    mapping (uint256 => mapping (address => uint256)) public projectFundsProvider;
+    mapping (uint256 => ICrowdFunding.Project) public projectDetails;
     
     
     constructor(address _crowdFundToken) {
@@ -28,7 +28,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
         unchecked {
             PROJECTID++;
         }
-        ICrowdFunding.ProjectDetails memory cache = ICrowdFunding.ProjectDetails ({
+        ICrowdFunding.Project memory cache = ICrowdFunding.Project ({
             name : _name,
             projectDescription : _description,
             amountToRaise : _amountToRaise,
@@ -40,20 +40,30 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
     }
 
     function addFundToProject(uint256 _projecId, uint256 _amount) external {
-        // check amount 
-        // check project 
-        // update struct and mapping
-        // add user to fundprovider list 
-        // transferFrom Token from sender to contract
-        // emit event
+        ICrowdFunding.Project memory cache = projectDetails[_projecId];
+        uint256 userProvidedfunds =  projectFundsProvider[_projecId][msg.sender];
+        if(_amount < 0){
+            revert InvalidAmount();
+        }
+        if (cache.amountToRaise < 0) {
+                revert InvalidProject();
+        }
+        if (cache.amountRaised > cache.amountToRaise) {
+            revert FundRaiseCompleted();
+        }
+        cache.amountRaised += _amount;
+        userProvidedfunds += _amount;
+        projectDetails[_projecId] = cache;
+        IERC20(CROWDFUNDINGTOKEN).transferFrom(msg.sender, address(this), _amount);
+        emit ICrowdFunding.FundsRaised(_projecId, _amount, msg.sender);
     }
     
-    function getProjectDetails(uint256 _projectId)external view{
+    function getProjectDetails(uint256 _projectId)public view{
     // check project ID
     // check is available details 
     }
     
-    function withdrawFundsFromProject(uint256 _projectID)external{
+    function withdrawFundsFromProject(uint256 _projectID)external nonReentrant{
         // check is project deadline past
         // check is fund raised completed to required amount
         // check is user a fund provider 

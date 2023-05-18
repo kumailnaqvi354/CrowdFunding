@@ -7,8 +7,10 @@ interface ICrowdFunding {
     error DeadlineEnded();
     error FundRaiseCompleted();
     error NoFundsInProjects();
+    error InvalidAmount();
+    error InvalidProject();
 
-    struct ProjectDetails {
+    struct Project {
         string name;
         string projectDescription;
         uint256 amountToRaise;

@@ -18,10 +18,12 @@ describe("Unit tests", function () {
     this.loadFixture = loadFixture;
   });
 
-  describe("Crowd Fundting", function () {
+  describe("Crowd Funding", function () {
     beforeEach(async function () {
       const { crowdfunding } = await this.loadFixture(deployCrowdFundingFixture);
       this.crowdfunding = crowdfunding;
+      const { crowdfundToken } = await this.loadFixture(deployCrowdFundingFixture);
+      this.crowdFundToken = crowdfundToken;
     });
 
     shouldBehaveLikeCrowdFunding();
