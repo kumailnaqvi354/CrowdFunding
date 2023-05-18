@@ -55,7 +55,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
             revert InvalidAmount();
         }
         cache.amountRaised += _amount;
-        userProvidedfunds += _amount;
+        projectFundsProvider[_projectId][msg.sender] += _amount;
         projectDetails[_projectId] = cache;
         IERC20(CROWDFUNDINGTOKEN).transferFrom(msg.sender, address(this), _amount);
         emit ICrowdFunding.FundsRaised(_projectId, _amount, msg.sender);
@@ -67,18 +67,19 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
        if (cache.amountToRaise < 0 || _projectId <= 0) {
             revert InvalidProject();
         }
-        if(cache.deadline < block.timestamp){
+        if(cache.deadline > block.timestamp){
             revert DeadlineNotEnded();
         }
-        if (cache.amountRaised < cache.amountToRaise) {
+        if (cache.amountRaised > cache.amountToRaise) {
             revert FundRaiseCompleted();
         }
-        if (userProvidedfunds < 0) {
+        if (userProvidedfunds <= 0) {
             revert NotFundedBySender();
         }
          
         cache.amountRaised -= userProvidedfunds;
         projectDetails[_projectId] = cache;
+        
         delete projectFundsProvider[_projectId][msg.sender];
         IERC20(CROWDFUNDINGTOKEN).transfer(msg.sender, userProvidedfunds);
         emit ICrowdFunding.WithdrawFunds(_projectId, userProvidedfunds, msg.sender);
