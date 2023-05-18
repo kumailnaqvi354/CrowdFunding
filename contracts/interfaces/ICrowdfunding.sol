@@ -18,11 +18,11 @@ interface ICrowdFunding {
     
    
 
-    event ProjectAddedToFundRaise(uint256 _projectI,string _name,string _description, uint256 _amountToRaised, uint256 _deadline);
+    event ProjectAddedToFundRaise(uint256 _projectId,string _name,string _description, uint256 _amountToRaised, uint256 _deadline);
     event FundsRaised(uint256 _projecId, uint256 _amount, address _sender);
     event WithdrawFunds(uint256 _projecId, uint256 _amount, address _withdrawer);
 
-    function addProjectForFundRaising(string memory _name,string memory _description, uint256 _amountToRaised, uint256 _deadline) external;
+    function addProjectForFundRaising(string memory _name,string memory _description, uint256 _amountToRaise, uint256 _deadline) external;
     function addFundToProject(uint256 _projecId, uint256 _amount) external;
     function getProjectDetails(uint256 _projectId)external view;
     function withdrawFundsFromProject(uint256 _projectID)external;
