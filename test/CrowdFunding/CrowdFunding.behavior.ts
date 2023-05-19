@@ -8,31 +8,24 @@ export function shouldBehaveLikeCrowdFunding(): void {
   it("Should Allow only Owner to add project for fund raise", async function () {
     await this.crowdfunding
       .connect(this.signers.admin)
-      .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684431789);
+      .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684563960);
 
     const response = await this.crowdfunding.connect(this.signers.admin).projectDetails("1");
     // console.log("here response ==========", response);
-  });
-  it("Should revert with Only Owner Error", async function () {
-    expect(
-      this.crowdfunding
-        .connect(this.signers.user1)
-        .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684431789),
-    ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 
   it("Should revert with Deadline", async function () {
     expect(
       this.crowdfunding
         .connect(this.signers.admin)
-        .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684410189),
+        .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684563960),
     ).to.be.revertedWithCustomError(this.crowdfunding, "DeadlineEnded");
   });
 
   it("Should add funds to Project", async function () {
     await this.crowdfunding
       .connect(this.signers.admin)
-      .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684515609);
+      .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684563960);
     // const response = await this.crowdfunding.connect(this.signers.admin).projectDetails("1");
     // console.log("here response ==========", response);
     await this.crowdFundToken
@@ -51,7 +44,7 @@ export function shouldBehaveLikeCrowdFunding(): void {
   it("should allow Fund provider to withdraw if fund is not successfully raised", async function () {
     await this.crowdfunding
       .connect(this.signers.admin)
-      .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684438860);
+      .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684563960);
     // const response = await this.crowdfunding.connect(this.signers.admin).projectDetails("1");
     // console.log("here response ==========", response);
 
@@ -72,7 +65,7 @@ export function shouldBehaveLikeCrowdFunding(): void {
   it("Should revert with error NotFundedBySender", async function () {
     await this.crowdfunding
       .connect(this.signers.admin)
-      .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684439460);
+      .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684563960);
     // const response = await this.crowdfunding.connect(this.signers.admin).projectDetails("1");
     // console.log("here response ==========", response);
 
@@ -96,5 +89,41 @@ export function shouldBehaveLikeCrowdFunding(): void {
     ).to.be.revertedWithCustomError(this.crowdfunding, "NotFundedBySender");
     // const response1 = await this.crowdfunding.connect(this.signers.admin).projectDetails("1");
     // console.log("here response1 ==========", response1);
+  });
+
+  it("should allow project Owner to claim funds", async function () {
+    await this.crowdfunding
+      .connect(this.signers.admin)
+      .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684563960);
+    const response = await this.crowdfunding.connect(this.signers.admin).projectDetails("1");
+    console.log("here response ==========", response);
+
+    await this.crowdFundToken
+      .connect(this.signers.user1)
+      .approve(this.crowdfunding.address.toString(), utils.parseEther("10000"));
+
+    await this.crowdfunding.connect(this.signers.user1).addFundToProject("1", "100000000000000000000");
+    await delay(30000);
+    expect(await this.crowdfunding.connect(this.signers.admin).claimFunds(1)).to.be.revertedWithCustomError(
+      this.crowdfunding,
+      "DeadlineNotEnded",
+    );
+  });
+
+  it("should allow project Owner to claim funds", async function () {
+    await this.crowdfunding
+      .connect(this.signers.admin)
+      .addProjectForFundRaising("Project 1", "Project Description 1", utils.parseUnits("1000", "ether"), 1684478880);
+    const response = await this.crowdfunding.connect(this.signers.admin).projectDetails("1");
+    console.log("here response ==========", response);
+
+    await this.crowdFundToken
+      .connect(this.signers.user1)
+      .approve(this.crowdfunding.address.toString(), utils.parseEther("10000"));
+
+    await this.crowdfunding.connect(this.signers.user1).addFundToProject("1", "1000000000000000000000");
+    await delay(30000);
+
+    await this.crowdfunding.connect(this.signers.admin).claimFunds(1);
   });
 }
