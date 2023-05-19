@@ -21,7 +21,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
         CROWDFUNDINGTOKEN = _crowdFundToken;
     }
 
-    function addProjectForFundRaising(string memory _name,string memory _description, uint256 _amountToRaise, uint256 _deadline) external onlyOwner {
+    function addProjectForFundRaising(string memory _name,string memory _description, uint256 _amountToRaise, uint256 _deadline) external {
         if(_amountToRaise <= 0 && _deadline <= block.timestamp){
            revert InvalidArguments();
         }
@@ -29,6 +29,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
             PROJECTID++;
         }
         ICrowdFunding.Project memory cache = ICrowdFunding.Project ({
+            owner: msg.sender,
             name : _name,
             projectDescription : _description,
             amountToRaise : _amountToRaise,
@@ -41,11 +42,10 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
 
     function addFundToProject(uint256 _projectId, uint256 _amount) external {
         ICrowdFunding.Project memory cache = projectDetails[_projectId];
-        uint256 userProvidedfunds =  projectFundsProvider[_projectId][msg.sender];
         if (cache.amountToRaise < 0 || _projectId <= 0) {
             revert InvalidProject();
         }
-        if(cache.deadline < block.timestamp){
+        if(cache.deadline <= block.timestamp){
             revert DeadlineEnded();
         }
         if (cache.amountRaised >= cache.amountToRaise) {
@@ -67,10 +67,10 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
        if (cache.amountToRaise < 0 || _projectId <= 0) {
             revert InvalidProject();
         }
-        if(cache.deadline > block.timestamp){
+        if(cache.deadline >= block.timestamp){
             revert DeadlineNotEnded();
         }
-        if (cache.amountRaised > cache.amountToRaise) {
+        if (cache.amountRaised >= cache.amountToRaise) {
             revert FundRaiseCompleted();
         }
         if (userProvidedfunds <= 0) {
@@ -83,7 +83,26 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
         delete projectFundsProvider[_projectId][msg.sender];
         IERC20(CROWDFUNDINGTOKEN).transfer(msg.sender, userProvidedfunds);
         emit ICrowdFunding.WithdrawFunds(_projectId, userProvidedfunds, msg.sender);
+    }
 
+    function claimFunds(uint256 _projectId) external {
+        ICrowdFunding.Project memory cache = projectDetails[_projectId];
+      if (cache.amountToRaise < 0 || _projectId <= 0) {
+            revert InvalidProject();
+        }
+        if(cache.deadline >= block.timestamp){
+            revert DeadlineNotEnded();
+        }
+        if(cache.owner != msg.sender){
+            revert NotOwnerOfProject();
+        }
+        if (cache.amountRaised < cache.amountToRaise) {
+            revert  FundRaiseNotCompleted();
+        }
+
+        delete projectDetails[_projectId];
+        IERC20(CROWDFUNDINGTOKEN).transfer(msg.sender, cache.amountRaised);
+        emit ICrowdFunding.fundsClaimed(_projectId, cache.amountRaised, msg.sender);
     }
 
 
