@@ -85,7 +85,7 @@ contract CrowdFunding is Ownable, ReentrancyGuard, Pausable, ICrowdFunding {
         emit ICrowdFunding.WithdrawFunds(_projectId, userProvidedfunds, msg.sender);
     }
 
-    function claimFunds(uint256 _projectId) external {
+    function claimFunds(uint256 _projectId) external nonReentrant{
         ICrowdFunding.Project memory cache = projectDetails[_projectId];
       if (cache.amountToRaise < 0 || _projectId <= 0) {
             revert InvalidProject();
